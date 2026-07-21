@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Clinic {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  timezone  String   @default("Europe/Rome")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  /// Studio dimostrativo: usa SEMPRE il MockProvider, anche se esistono
+  /// credenziali WhatsApp salvate. Nessun messaggio reale può partire.
+  demoMode Boolean @default(false) @map("demo_mode")
+  /// Tipologie di appuntamento proposte nel form (array di stringhe).
+  /// Configurabili per studio: il prodotto non è specifico per dentisti.
+  appointmentTypes Json @default("[]") @map("appointment_types")
+  /// Override delle etichette dell'interfaccia (studio/paziente/appuntamento).
+  labels Json @default("{}")
+
+  /// Fascia oraria in cui NON inviare messaggi ai pazienti ("HH:mm", fuso
+  /// dello studio). Un promemoria che cadrebbe qui dentro viene rinviato alla
+  /// prima ora utile, non saltato. Può attraversare la mezzanotte.
+  quietHoursStart String @default("21:00") @map("quiet_hours_start")
+  quietHoursEnd   String @default("08:00") @map("quiet_hours_end")
+
+  // Canale WhatsApp per-studio (BSP: 360dialog). La API key è cifrata
+  // AES-256-GCM con AAD = clinic.id: mai salvata né restituita in chiaro.
+  whatsappActive        Boolean   @default(false) @map("whatsapp_active")
+  whatsappPhone         String?   @map("whatsapp_phone")
+  whatsappChannelId     String?   @map("whatsapp_channel_id")
+  whatsappApiKeyEnc     String?   @map("whatsapp_api_key_enc")
+  whatsappWebhookSecret String?   @map("whatsapp_webhook_secret")
+  whatsappLastTestAt    DateTime? @map("whatsapp_last_test_at")
+  whatsappLastTestOk    Boolean?  @map("whatsapp_last_test_ok")
+  whatsappLastTestError String?   @map("whatsapp_last_test_error")
+
+  users           User[]
+  patients        Patient[]
+  appointments    Appointment[]
+  templates       MessageTemplate[]
+  reminders       Reminder[]
+  events          EventLog[]
+  inboundMessages InboundMessage[]
+
+  @@map("clinic")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  clinicId     String   @map("clinic_id") @db.Uuid
+  clinic       Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("app_user")
+}
+
+// thank_you è usato solo da message_template (testo del messaggio di
+// ringraziamento post-conferma), mai dalle righe reminder.
+enum ReminderKind {
+  reminder_48h
+  reminder_3h
+  thank_you
+}
+
+model MessageTemplate {
+  id       String       @id @default(uuid()) @db.Uuid
+  clinicId String       @map("clinic_id") @db.Uuid
+  clinic   Clinic       @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  kind     ReminderKind
+  body     String
+
+  @@unique([clinicId, kind])
+  @@map("message_template")
+}
+
+model Patient {
+  id               String    @id @default(uuid()) @db.Uuid
+  clinicId         String    @map("clinic_id") @db.Uuid
+  clinic           Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  firstName        String    @map("first_name")
+  lastName         String    @map("last_name")
+  phone            String
+  privacyConsentAt DateTime? @map("privacy_consent_at")
+  // opt-out via STOP/BASTA: nessun invio futuro (enforcement nel dispatcher)
+  optedOutAt       DateTime? @map("opted_out_at")
+  // ultimo messaggio in ingresso: la finestra WhatsApp di 24h parte da qui
+  waWindowOpenedAt DateTime? @map("wa_window_opened_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  appointments    Appointment[]
+  inboundMessages InboundMessage[]
+
+  @@unique([clinicId, phone])
+  @@map("patient")
+}
+
+enum AppointmentStatus {
+  scheduled
+  confirmed
+  cancelled
+  no_show
+  completed
+}
+
+model Appointment {
+  id          String            @id @default(uuid()) @db.Uuid
+  clinicId    String            @map("clinic_id") @db.Uuid
+  clinic      Clinic            @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patientId   String            @map("patient_id") @db.Uuid
+  patient     Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  startsAt    DateTime          @map("starts_at")
+  durationMin Int               @map("duration_min")
+  visitType   String            @map("visit_type")
+  status      AppointmentStatus @default(scheduled)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  reminders Reminder[]
+
+  @@index([clinicId, startsAt])
+  @@map("appointment")
+}
+
+enum ReminderStatus {
+  pending
+  sent
+  failed
+  skipped
+  failed_template // template non approvato/inesistente: nessun retry
+  failed_recipient // numero non su WhatsApp: nessun retry
+  failed_rate_limit // rate limit esaurito dopo i retry con backoff
+}
+
+enum ReminderResponse {
+  none
+  confirmed
+  cancel_requested
+}
+
+model Reminder {
+  id            String           @id @default(uuid()) @db.Uuid
+  clinicId      String           @map("clinic_id") @db.Uuid
+  clinic        Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  appointmentId String           @map("appointment_id") @db.Uuid
+  appointment   Appointment      @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  kind          ReminderKind
+  scheduledFor  DateTime         @map("scheduled_for")
+  status        ReminderStatus   @default(pending)
+  sentAt        DateTime?        @map("sent_at")
+  providerMsgId String?          @map("provider_msg_id")
+  response      ReminderResponse @default(none)
+  respondedAt   DateTime?        @map("responded_at")
+  // retry con backoff (solo rate limit): la riga torna pending con next_retry_at
+  attempts      Int              @default(0)
+  nextRetryAt   DateTime?        @map("next_retry_at")
+
+  @@unique([appointmentId, kind])
+  @@index([status, scheduledFor])
+  @@map("reminder")
+}
+
+enum InboundKind {
+  button_confirm
+  button_cancel
+  text
+  opt_out
+}
+
+/// Messaggi in ingresso dal webhook. Il vincolo UNIQUE su
+/// (clinic_id, provider_message_id) è il meccanismo di idempotenza:
+/// un evento consegnato due volte non produce doppi effetti.
+model InboundMessage {
+  id                String      @id @default(uuid()) @db.Uuid
+  clinicId          String      @map("clinic_id") @db.Uuid
+  clinic            Clinic      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patientId         String?     @map("patient_id") @db.Uuid
+  patient           Patient?    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  providerMessageId String      @map("provider_message_id")
+  kind              InboundKind
+  /// valorizzato solo per il testo libero (cancellato con il paziente: oblio GDPR)
+  body              String?
+  /// sempre mascherato: "+39 333 •••• 456"
+  fromMasked        String      @map("from_masked")
+  needsAttention    Boolean     @default(false) @map("needs_attention")
+  handledAt         DateTime?   @map("handled_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
+
+  @@unique([clinicId, providerMessageId])
+  @@index([clinicId, needsAttention])
+  @@map("inbound_message")
+}
+
+model EventLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  clinicId      String   @map("clinic_id") @db.Uuid
+  clinic        Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  type          String
+  appointmentId String?  @map("appointment_id") @db.Uuid
+  patientId     String?  @map("patient_id") @db.Uuid
+  payload       Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([clinicId, createdAt])
+  @@map("event_log")
+}

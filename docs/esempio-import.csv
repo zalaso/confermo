@@ -1,0 +1,5 @@
+nome;cognome;telefono;data;ora;durata_minuti;tipo_visita;consenso_privacy
+Carlo;Verdi;335 6677889;28/07/2026;09:30;30;Controllo;si
+Lucia;Neri;338 1122334;28/07/2026;11:00;45;Prima visita;si
+Roberto;Fontana;340 5566778;29/07/2026;15:00;60;Medicazione;si
+Elisa;Barbieri;347 9988776;30/07/2026;10:30;30;Controllo;no
