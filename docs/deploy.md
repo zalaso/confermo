@@ -49,26 +49,25 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 > reale, a prescindere da questa variabile. Uno studio con `demo_mode` attivo
 > usa sempre il mock, anche se ha credenziali salvate.
 
-### 3. Build e avvio
+### 3. Build, avvio e migrazioni
 
-Railway rileva npm workspaces. Impostare in *Settings → Deploy*:
+**Non serve configurare nulla a mano**: il file [`railway.json`](../railway.json)
+nella radice del repository dichiara già tutto.
 
-- **Build command**: `npm ci && npm run db:generate -w apps/api && npm run build:web`
-- **Start command**: `npm run start -w apps/api`
+- build: `npm ci && npm run db:generate -w apps/api && npm run build:web`
+- pre-deploy: `prisma migrate deploy` (le migrazioni girano **prima** che la
+  nuova versione riceva traffico; `migrate dev` non va mai usato in produzione,
+  può cancellare dati)
+- avvio: `npm run start -w apps/api`
+- health check su `/api/health`: se risponde male, Railway non manda in
+  produzione la nuova versione
 
-L'API serve la dashboard compilata da `apps/web/dist`: un solo servizio, un solo
-dominio, nessun CORS da configurare.
+L'API serve anche la dashboard compilata da `apps/web/dist`: un solo servizio,
+un solo dominio, nessun CORS da configurare.
 
-### 4. Migrazioni
-
-Al primo deploy (e a ogni deploy con migrazioni nuove), dalla shell del
-servizio o via `railway run`:
-
-```bash
-npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
-```
-
-Non usare `migrate dev` in produzione: può cancellare dati.
+Nota: `tsx` e `prisma` stanno fra le `dependencies` e non fra le
+`devDependencies` perché servono a runtime (il processo parte con `tsx`) e al
+pre-deploy (le migrazioni). Spostarli fra le dev romperebbe il deploy.
 
 ### 5. Dominio
 
