@@ -19,7 +19,13 @@ import demoRoutes from './routes/demo.js';
 import healthRoutes from './routes/health.js';
 
 export async function buildServer() {
-  const app = Fastify({ logger: { level: 'info' } });
+  const app = Fastify({
+    logger: { level: 'info' },
+    // L'applicazione sta sempre dietro un reverse proxy (Railway, Caddy):
+    // senza questo `req.ip` sarebbe l'indirizzo del proxy, uguale per tutti,
+    // e il rate limiting conterebbe il traffico di tutti in un unico secchio.
+    trustProxy: true,
+  });
 
   await app.register(fastifyCors, {
     origin: true,
