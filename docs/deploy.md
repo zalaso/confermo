@@ -31,7 +31,14 @@ Nel servizio, sezione *Variables*:
 | `APP_BASE_URL` | `https://<tuo-dominio>` | HTTPS pubblico, senza slash finale |
 | `PORT` | `3001` | Railway la imposta da sé, lasciarla se già presente |
 | `NODE_ENV` | `production` | attiva i cookie `secure` |
+| `NPM_CONFIG_INCLUDE` | `dev` | **obbligatoria**, vedi sotto |
 | `MESSAGING_PROVIDER` | `mock` | vedi nota sotto |
+
+> **Perché `NPM_CONFIG_INCLUDE=dev`.** Con `NODE_ENV=production` npm salta le
+> `devDependencies`, ma `vite` e `typescript` — che compilano la dashboard —
+> stanno proprio lì. Senza questa variabile il build fallisce al passo
+> `build:web`. `tsx` e `prisma` invece sono fra le `dependencies` apposta,
+> perché servono a far partire il processo e a eseguire le migrazioni.
 
 Generare la chiave di cifratura:
 
@@ -54,7 +61,10 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 **Non serve configurare nulla a mano**: il file [`railway.json`](../railway.json)
 nella radice del repository dichiara già tutto.
 
-- build: `npm ci && npm run db:generate -w apps/api && npm run build:web`
+- install: lo fa Nixpacks da solo. **Non aggiungere `npm ci` al build command**:
+  la seconda installazione va in conflitto con la cache montata da Docker e il
+  build muore con `npm error code EBUSY` su `rmdir`
+- build: `npm run db:generate -w apps/api && npm run build:web`
 - pre-deploy: `prisma migrate deploy` (le migrazioni girano **prima** che la
   nuova versione riceva traffico; `migrate dev` non va mai usato in produzione,
   può cancellare dati)
