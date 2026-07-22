@@ -161,6 +161,15 @@ npm run set-password -w apps/api -- --email studio@esempio.it  # genera una pass
 risponde o se lo scheduler non completa un giro da più di cinque minuti: è
 l'endpoint da puntare con un servizio di uptime esterno.
 
+## Documentazione
+
+| Documento | A cosa serve |
+| --- | --- |
+| [deploy.md](docs/deploy.md) | Mettere online il servizio (Railway EU o VPS) |
+| [whatsapp-setup.md](docs/whatsapp-setup.md) | Riferimento completo su 360dialog e i template Meta |
+| [procedura-attivazione-studio.md](docs/procedura-attivazione-studio.md) | Foglio di campo da avere in mano durante la visita a uno studio |
+| [modulo-consenso-pazienti.md](docs/modulo-consenso-pazienti.md) | Bozza del consenso che lo studio fa firmare ai pazienti |
+
 ## Deploy (VPS singolo o Railway)
 
 Procedura completa in **[docs/deploy.md](docs/deploy.md)**. In sintesi:
