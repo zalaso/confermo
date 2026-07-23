@@ -60,6 +60,18 @@ describe('risposte dei pazienti', () => {
     expect(outcome.handled).toBe(false);
   });
 
+  it('appointmentId non-UUID (pulsante di un messaggio di prova) non fa errore', async () => {
+    // l'invio di prova usa il payload "test" e va a un numero senza appuntamenti:
+    // premere il pulsante non deve far esplodere la query sulla colonna UUID.
+    await createWithSentReminder();
+    const outcome = await handleReply(prisma, {
+      from: '+390000000000', // numero di prova, nessun appuntamento
+      button: 'confirm',
+      appointmentId: 'test',
+    });
+    expect(outcome.handled).toBe(false);
+  });
+
   it('gli eventi di audit vengono registrati', async () => {
     const { appointment, patient, clinic } = await createWithSentReminder();
     await handleReply(prisma, { from: patient.phone, button: 'confirm' });

@@ -3,6 +3,12 @@ import { canTransition } from '@confermo/shared';
 import { logEvent } from '../lib/events.js';
 import { syncReminders } from './reminders.js';
 
+/** Vero se la stringa è un UUID: appointment.id è una colonna UUID e una query
+ *  con un valore non-UUID farebbe fallire Postgres. */
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
 export interface ButtonReply {
   /** numero mittente E.164 */
   from: string;
@@ -30,11 +36,14 @@ export async function handleReply(
   now = new Date(),
 ): Promise<ReplyOutcome> {
   return prisma.$transaction(async (tx) => {
+    // il filtro per id si usa solo se l'appointmentId è un UUID valido:
+    // l'invio di prova usa il payload "test", che non è un appuntamento reale.
+    const byId = reply.appointmentId && isUuid(reply.appointmentId) ? reply.appointmentId : null;
     const reminder = await tx.reminder.findFirst({
       where: {
         status: 'sent',
         appointment: {
-          ...(reply.appointmentId ? { id: reply.appointmentId } : {}),
+          ...(byId ? { id: byId } : {}),
           patient: { phone: reply.from },
           startsAt: { gt: now },
           status: { in: ['scheduled', 'confirmed'] },
