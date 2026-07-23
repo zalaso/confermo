@@ -165,9 +165,11 @@ l'endpoint da puntare con un servizio di uptime esterno.
 
 | Documento | A cosa serve |
 | --- | --- |
+| [panoramica-prodotto.md](docs/panoramica-prodotto.md) | Cosa fa il software (attuale e futuro) e come si installa |
 | [deploy.md](docs/deploy.md) | Mettere online il servizio (Railway EU o VPS) |
 | [whatsapp-setup.md](docs/whatsapp-setup.md) | Riferimento completo su 360dialog e i template Meta |
 | [procedura-attivazione-studio.md](docs/procedura-attivazione-studio.md) | Foglio di campo da avere in mano durante la visita a uno studio |
+| [cosa-serve-dal-cliente.md](docs/cosa-serve-dal-cliente.md) | Da consegnare allo studio: cosa preparare per l'attivazione |
 | [modulo-consenso-pazienti.md](docs/modulo-consenso-pazienti.md) | Bozza del consenso che lo studio fa firmare ai pazienti |
 
 ## Deploy (VPS singolo o Railway)
