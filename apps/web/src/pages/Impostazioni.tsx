@@ -4,8 +4,11 @@ import {
   REMINDER_KIND_LABELS,
   TEMPLATE_VARIABLES,
   VISIT_TYPE_MAX_LENGTH,
+  WHATSAPP_PROVIDERS,
+  WHATSAPP_PROVIDER_LABELS,
   type ClinicDto,
   type TemplateKind,
+  type WhatsappProviderName,
   type WhatsappSettingsDto,
 } from '@confermo/shared';
 import { get, post, put } from '../api';
@@ -117,6 +120,7 @@ function StudioSection({ clinic, onSaved }: { clinic: ClinicDto; onSaved: () => 
 
 function WhatsappSection() {
   const [settings, setSettings] = useState<WhatsappSettingsDto | null>(null);
+  const [provider, setProvider] = useState<WhatsappProviderName>('dialog360');
   const [phone, setPhone] = useState('');
   const [channelId, setChannelId] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -132,6 +136,7 @@ function WhatsappSection() {
     setSettings(s);
     setPhone(s.phone ?? '');
     setChannelId(s.channelId ?? '');
+    setProvider(s.provider);
   };
 
   useEffect(() => {
@@ -145,6 +150,7 @@ function WhatsappSection() {
     setSaved(false);
     try {
       const s = await put<WhatsappSettingsDto>('/whatsapp/settings', {
+        provider,
         phone: phone || null,
         channelId: channelId || null,
         ...(apiKey.trim() !== '' ? { apiKey: apiKey.trim() } : {}),
@@ -191,6 +197,8 @@ function WhatsappSection() {
 
   if (!settings) return <p className="muted">Caricamento…</p>;
 
+  const isMeta = provider === 'meta';
+
   const statusPill = settings.active ? (
     <span className="pill pill-ok">✓ Canale attivo</span>
   ) : settings.apiKeyConfigured ? (
@@ -206,22 +214,36 @@ function WhatsappSection() {
         {statusPill}
       </div>
       <p className="muted small-note">
-        Ogni studio usa il proprio numero e il proprio account 360dialog. La procedura completa è in{' '}
+        Ogni studio usa il proprio numero e il proprio canale. La procedura completa è in{' '}
         <code>docs/whatsapp-setup.md</code>. Senza canale attivo il sistema resta in modalità demo.
       </p>
       <form className="form" onSubmit={save}>
+        <label>
+          Provider del canale
+          <select value={provider} onChange={(e) => setProvider(e.target.value as WhatsappProviderName)}>
+            {WHATSAPP_PROVIDERS.map((p) => (
+              <option key={p} value={p}>
+                {WHATSAPP_PROVIDER_LABELS[p]}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="form-row">
           <label>
             Numero mittente WhatsApp
             <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="es. +39 06 1234567" />
           </label>
           <label>
-            ID canale 360dialog
-            <input value={channelId} onChange={(e) => setChannelId(e.target.value)} placeholder="es. abcdEFGH" />
+            {isMeta ? 'Phone number ID (Meta)' : 'ID canale 360dialog'}
+            <input
+              value={channelId}
+              onChange={(e) => setChannelId(e.target.value)}
+              placeholder={isMeta ? 'es. 123456789012345' : 'es. abcdEFGH'}
+            />
           </label>
         </div>
         <label>
-          API key del canale{' '}
+          {isMeta ? 'Access token (Meta)' : 'API key del canale'}{' '}
           {settings.apiKeyConfigured && settings.apiKeyLast4 && (
             <span className="muted">(salvata: ••••{settings.apiKeyLast4})</span>
           )}
@@ -229,7 +251,13 @@ function WhatsappSection() {
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder={settings.apiKeyConfigured ? 'Lascia vuoto per non cambiarla' : 'Incolla qui la API key'}
+            placeholder={
+              settings.apiKeyConfigured
+                ? 'Lascia vuoto per non cambiarla'
+                : isMeta
+                  ? 'Incolla qui l’access token'
+                  : 'Incolla qui la API key'
+            }
             autoComplete="new-password"
           />
         </label>
@@ -249,7 +277,11 @@ function WhatsappSection() {
 
       {settings.webhookUrl && (
         <div className="webhook-box">
-          <strong>URL webhook da incollare nel pannello 360dialog:</strong>
+          <strong>
+            {isMeta
+              ? 'URL webhook e verify token da inserire nel pannello Meta:'
+              : 'URL webhook da incollare nel pannello 360dialog:'}
+          </strong>
           <div className="webhook-row">
             <code className="webhook-url">{settings.webhookUrl}</code>
             <button

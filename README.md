@@ -117,10 +117,11 @@ Un file di esempio è in `docs/esempio-import.csv`.
 npm test
 ```
 
-117 test (Vitest). Gli integration test avviano un PostgreSQL embedded dedicato
+128 test (Vitest). Gli integration test avviano un PostgreSQL embedded dedicato
 su porta 5434: scheduling dei promemoria, transizioni di stato, idempotenza
 (inclusi dispatcher concorrenti e webhook consegnati due volte), consenso
-privacy, cifratura credenziali, parsing webhook Cloud API, opt-out, retry con
+privacy, cifratura credenziali, parsing webhook Cloud API, provider Meta e
+360dialog, handshake di verifica del webhook Meta, opt-out, retry con
 backoff, selezione del provider per studio, modalità demo, resilienza del
 poller alla caduta del database, fascia di silenzio, promemoria in ritardo,
 cambio password e protezione dagli attacchi a forza bruta.
@@ -168,6 +169,7 @@ l'endpoint da puntare con un servizio di uptime esterno.
 | [panoramica-prodotto.md](docs/panoramica-prodotto.md) | Cosa fa il software (attuale e futuro) e come si installa |
 | [deploy.md](docs/deploy.md) | Mettere online il servizio (Railway EU o VPS) |
 | [whatsapp-setup.md](docs/whatsapp-setup.md) | Riferimento completo su 360dialog e i template Meta |
+| [test-numero-meta.md](docs/test-numero-meta.md) | Collaudare l'integrazione sul numero di test gratuito di Meta |
 | [procedura-attivazione-studio.md](docs/procedura-attivazione-studio.md) | Foglio di campo da avere in mano durante la visita a uno studio |
 | [cosa-serve-dal-cliente.md](docs/cosa-serve-dal-cliente.md) | Da consegnare allo studio: cosa preparare per l'attivazione |
 | [modulo-consenso-pazienti.md](docs/modulo-consenso-pazienti.md) | Bozza del consenso che lo studio fa firmare ai pazienti |

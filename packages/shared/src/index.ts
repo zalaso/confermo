@@ -138,15 +138,25 @@ export interface CsvImportReport {
   errors: { row: number; message: string }[];
 }
 
+export const WHATSAPP_PROVIDERS = ['dialog360', 'meta'] as const;
+export type WhatsappProviderName = (typeof WHATSAPP_PROVIDERS)[number];
+
+export const WHATSAPP_PROVIDER_LABELS: Record<WhatsappProviderName, string> = {
+  dialog360: '360dialog (consigliato per la produzione)',
+  meta: 'Meta Cloud API (diretto, utile per i test)',
+};
+
 export interface WhatsappSettingsDto {
+  provider: WhatsappProviderName;
   active: boolean;
   phone: string | null;
+  /** 360dialog: ID canale · Meta: phone number ID */
   channelId: string | null;
-  /** true se una API key è salvata (mai restituita in chiaro) */
+  /** true se una credenziale è salvata (mai restituita in chiaro) */
   apiKeyConfigured: boolean;
-  /** ultimi 4 caratteri della API key, per conferma visiva */
+  /** ultimi 4 caratteri della credenziale, per conferma visiva */
   apiKeyLast4: string | null;
-  /** URL completo da incollare nel pannello 360dialog (contiene il token) */
+  /** URL completo da incollare nel pannello del provider (contiene il token) */
   webhookUrl: string | null;
   lastTest: { at: string; ok: boolean; error: string | null } | null;
 }

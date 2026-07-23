@@ -28,8 +28,15 @@ model Clinic {
   quietHoursStart String @default("21:00") @map("quiet_hours_start")
   quietHoursEnd   String @default("08:00") @map("quiet_hours_end")
 
-  // Canale WhatsApp per-studio (BSP: 360dialog). La API key è cifrata
-  // AES-256-GCM con AAD = clinic.id: mai salvata né restituita in chiaro.
+  // Canale WhatsApp per-studio. La API key/token è cifrata AES-256-GCM con
+  // AAD = clinic.id: mai salvata né restituita in chiaro.
+  //
+  // Il canale può passare da due provider, entrambi sopra la Cloud API di Meta:
+  // - "dialog360": BSP; whatsapp_channel_id = ID canale, key = D360 API key.
+  // - "meta": Cloud API diretta; whatsapp_channel_id = phone number ID,
+  //   key = access token. Utile per collaudare sul numero di test di Meta,
+  //   che non richiede verifica aziendale.
+  whatsappProvider      String    @default("dialog360") @map("whatsapp_provider")
   whatsappActive        Boolean   @default(false) @map("whatsapp_active")
   whatsappPhone         String?   @map("whatsapp_phone")
   whatsappChannelId     String?   @map("whatsapp_channel_id")

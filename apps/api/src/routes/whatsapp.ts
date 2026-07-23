@@ -11,7 +11,12 @@ import { normalizePhone } from '../lib/phone.js';
 import { logEvent } from '../lib/events.js';
 import { renderTemplate } from '../lib/template.js';
 import { formatLocal } from '../lib/time.js';
-import { resolveProvider, buildButtonPayloads } from '../messaging/index.js';
+import {
+  resolveProvider,
+  buildButtonPayloads,
+  WHATSAPP_PROVIDERS,
+  type WhatsappProviderName,
+} from '../messaging/index.js';
 
 function toSettingsDto(clinic: Clinic): WhatsappSettingsDto {
   let apiKeyLast4: string | null = null;
@@ -23,6 +28,7 @@ function toSettingsDto(clinic: Clinic): WhatsappSettingsDto {
     }
   }
   return {
+    provider: (clinic.whatsappProvider === 'meta' ? 'meta' : 'dialog360') as WhatsappProviderName,
     active: clinic.whatsappActive,
     phone: clinic.whatsappPhone,
     channelId: clinic.whatsappChannelId,
@@ -54,6 +60,7 @@ export default async function whatsappRoutes(fastify: FastifyInstance) {
     {
       schema: {
         body: Type.Object({
+          provider: Type.Optional(Type.Union(WHATSAPP_PROVIDERS.map((p) => Type.Literal(p)))),
           phone: Type.Optional(Type.Union([Type.String(), Type.Null()])),
           channelId: Type.Optional(Type.Union([Type.String(), Type.Null()])),
           /** write-only: mai restituita; stringa vuota = lascia invariata */
@@ -67,6 +74,10 @@ export default async function whatsappRoutes(fastify: FastifyInstance) {
       const data: Record<string, unknown> = {};
       const changed: string[] = [];
 
+      if (req.body.provider !== undefined) {
+        data.whatsappProvider = req.body.provider;
+        changed.push('provider');
+      }
       if (req.body.phone !== undefined) {
         if (req.body.phone === null || req.body.phone.trim() === '') {
           data.whatsappPhone = null;

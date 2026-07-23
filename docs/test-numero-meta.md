@@ -1,0 +1,97 @@
+# Collaudare l'integrazione WhatsApp senza uno studio reale
+
+Meta assegna a ogni sviluppatore un **numero di test gratuito**, senza verifica
+aziendale e senza partita IVA. Serve per provare l'intera catena — invio dei
+template, pulsanti, risposte in arrivo, ringraziamento — **prima** di attivare
+un canale su uno studio vero, così il primo contatto con un cliente non è anche
+il primo collaudo.
+
+Il provider `meta` in Confermo parla direttamente con la Cloud API di Meta.
+Poiché 360dialog è solo un proxy sopra la stessa API, quello che funziona qui
+funziona anche in produzione con 360dialog: cambiano l'URL e il tipo di
+credenziale, non il resto.
+
+> **Limiti del numero di test.** Meta permette di scrivere solo a un massimo di
+> 5 numeri che aggiungi come destinatari (il tuo cellulare, quello di un
+> collega...), e non serve verifica per usarlo. È pensato per lo sviluppo, non
+> per la produzione: per uno studio reale serve comunque un numero verificato,
+> con 360dialog o con Meta in versione completa.
+
+---
+
+## 1. Creare l'app su Meta for Developers
+
+1. Vai su **developers.facebook.com** e accedi con un account Facebook.
+2. **My Apps → Create App → Other → Business**.
+3. Nella dashboard dell'app, **Add product → WhatsApp → Set up**.
+4. Meta crea in automatico un **account WhatsApp di test** e un **numero di
+   test**. Li trovi in **WhatsApp → API Setup**.
+
+## 2. Annotare le credenziali
+
+Sempre in **WhatsApp → API Setup**:
+
+- [ ] **Phone number ID** — l'identificativo del numero di test (NON il numero
+      in sé). È la stringa numerica sotto "From".
+- [ ] **Access token** — il token temporaneo mostrato in alto. Dura 24 ore:
+      per i test va bene, per un uso prolungato si genera un token permanente
+      (System User) da Business Settings.
+- [ ] **Destinatari di prova**: nella stessa pagina, alla voce "To", aggiungi e
+      verifica i numeri a cui potrai scrivere (max 5). Ricevono un codice via
+      WhatsApp da confermare.
+
+## 3. I template
+
+Sul numero di test puoi inviare da subito i **template di esempio** già
+approvati da Meta (es. `hello_world`), utili per verificare il trasporto.
+
+Per provare i template veri di Confermo (`promemoria_48h`, `promemoria_3h`) vai
+in **WhatsApp Manager → Message templates → Create template** e inseriscili come
+descritto in [whatsapp-setup.md](whatsapp-setup.md) (categoria UTILITY, lingua
+it, due pulsanti quick-reply). L'approvazione richiede in genere pochi minuti.
+
+> Se l'account di test non permette di sottomettere template personalizzati, lo
+> scopri qui — prima di andare da un cliente — e nel frattempo il trasporto
+> resta collaudabile con i template di esempio.
+
+## 4. Configurare Confermo
+
+Crea uno studio **non** in modalità demo (o togli la modalità demo a quello di
+prova), poi dalla dashboard → **Impostazioni → Canale WhatsApp**:
+
+- [ ] Provider: **Meta Cloud API (diretto)**
+- [ ] Numero mittente: il numero di test
+- [ ] **Phone number ID**: quello annotato al passo 2
+- [ ] **Access token**: quello annotato al passo 2 → **Salva**
+- [ ] Copia l'**URL webhook** e il **verify token** che compaiono
+
+## 5. Collegare il webhook
+
+L'app deve essere raggiungibile in HTTPS pubblico (`APP_BASE_URL`). Se stai
+provando in locale, esponi la porta con un tunnel (es. `cloudflared tunnel` o
+`ngrok http 3001`) e imposta temporaneamente quell'URL come `APP_BASE_URL`.
+
+Nella dashboard dell'app Meta → **WhatsApp → Configuration → Webhook**:
+
+- [ ] **Callback URL**: l'URL webhook copiato da Confermo (senza il `?token=`,
+      quella parte è il verify token)
+- [ ] **Verify token**: il token dello studio (Confermo lo mostra accanto
+      all'URL)
+- [ ] Salva: Meta chiama l'URL in GET, Confermo risponde con il challenge e la
+      verifica passa.
+- [ ] Alla voce **Webhook fields**, iscriviti a **messages**.
+
+## 6. Prova completa
+
+- [ ] Impostazioni → **Attiva canale** → **Invia messaggio di prova** verso uno
+      dei numeri di test.
+- [ ] Sul telefono, premi **Confermo**: la risposta deve tornare a Confermo (lo
+      vedi nella card dell'appuntamento che diventa verde, o nel registro
+      eventi).
+- [ ] Prova anche **Devo disdire** e un messaggio di testo libero: devono
+      comparire nel riquadro "Messaggi da gestire".
+
+Se qualcosa non torna — un codice di errore inatteso, una risposta che non
+arriva — annota il messaggio esatto: è proprio ciò che questo collaudo serve a
+far emergere, e si sistema nel codice del provider `meta` (o nella logica
+condivisa in `cloud-api.ts`) prima di toccare uno studio reale.
