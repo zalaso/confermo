@@ -176,7 +176,7 @@ Nessuna credenziale WhatsApp è necessaria per nessuno di questi passaggi.
 ## Attivare il WhatsApp reale (studio pilota)
 
 Quando ci sarà il primo studio pagante, seguire
-[whatsapp-setup.md](whatsapp-setup.md). In sintesi: creare lo studio **senza**
+[whatsapp-360dialog.md](whatsapp-360dialog.md). In sintesi: creare lo studio **senza**
 `demo_mode`, inserire le credenziali 360dialog dalla pagina Impostazioni e
 incollare l'URL del webhook nel pannello del BSP. Serve `APP_BASE_URL` in HTTPS,
 altrimenti Meta rifiuta il webhook.

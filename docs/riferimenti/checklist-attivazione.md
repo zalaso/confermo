@@ -1,7 +1,7 @@
 # Attivazione di uno studio — foglio di campo
 
 Da avere sottomano durante la visita. È la versione operativa di
-[whatsapp-setup.md](whatsapp-setup.md), che resta il riferimento completo.
+[whatsapp-360dialog.md](whatsapp-360dialog.md), che resta il riferimento completo.
 
 **Durata realistica: 45-60 minuti**, più l'attesa per l'approvazione dei
 template da parte di Meta (da pochi minuti a 24 ore, non dipende da voi).
@@ -127,7 +127,7 @@ della configurazione resta salvato.
 - [ ] **Cambia la password** dell'accesso alla dashboard insieme a loro
       (Impostazioni → Password di accesso) e falla mettere nel loro gestore di
       password, non su un post-it.
-- [ ] **Consegna il modulo di consenso** ([modulo-consenso-pazienti.md](modulo-consenso-pazienti.md))
+- [ ] **Consegna il modulo di consenso** ([consenso-pazienti.md](../modelli/consenso-pazienti.md))
       e spiega che senza firma il sistema non manda niente a quel paziente.
 - [ ] **Controlla la fascia oraria di silenzio** (Impostazioni): il valore
       predefinito 21:00–08:00 va bene quasi sempre, ma se lo studio apre alle

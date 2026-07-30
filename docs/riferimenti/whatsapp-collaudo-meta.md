@@ -47,7 +47,7 @@ approvati da Meta (es. `hello_world`), utili per verificare il trasporto.
 
 Per provare i template veri di Confermo (`promemoria_48h`, `promemoria_3h`) vai
 in **WhatsApp Manager → Message templates → Create template** e inseriscili come
-descritto in [whatsapp-setup.md](whatsapp-setup.md) (categoria UTILITY, lingua
+descritto in [whatsapp-360dialog.md](whatsapp-360dialog.md) (categoria UTILITY, lingua
 it, due pulsanti quick-reply). L'approvazione richiede in genere pochi minuti.
 
 > Se l'account di test non permette di sottomettere template personalizzati, lo
