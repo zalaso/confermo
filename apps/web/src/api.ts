@@ -5,10 +5,17 @@ export class UnauthorizedError extends Error {
 }
 
 export async function api<T>(path: string, opts: RequestInit = {}): Promise<T> {
+  // Il Content-Type va dichiarato SOLO se c'è davvero un corpo: annunciare
+  // JSON e non mandare nulla fa fallire la richiesta con 400 prima ancora di
+  // arrivare alla rotta (è quello che rompeva logout e "segna come gestito").
+  const hasBody = opts.body !== undefined && opts.body !== null;
   const res = await fetch(`/api${path}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
     ...opts,
+    headers: {
+      ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+      ...opts.headers,
+    },
   });
   if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) {

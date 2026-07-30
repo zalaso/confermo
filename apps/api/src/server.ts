@@ -27,6 +27,23 @@ export async function buildServer() {
     trustProxy: true,
   });
 
+  // Un POST senza corpo su un endpoint d'azione (logout, "segna come gestito")
+  // è legittimo: di serie Fastify lo rifiuta con 400 se arriva con
+  // Content-Type JSON. Qui un corpo vuoto vale come oggetto vuoto, e le rotte
+  // con corpo obbligatorio falliscono comunque, ma sulla validazione dello
+  // schema, con un messaggio comprensibile.
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, body, done) => {
+    const raw = (body as string).trim();
+    if (raw === '') return done(null, {});
+    try {
+      done(null, JSON.parse(raw));
+    } catch {
+      const err = new Error('Corpo della richiesta non è JSON valido') as Error & { statusCode: number };
+      err.statusCode = 400;
+      done(err);
+    }
+  });
+
   await app.register(fastifyCors, {
     origin: true,
     credentials: true,
