@@ -33,7 +33,17 @@ Nel pannello 360dialog: nome dello studio, foto/logo, indirizzo, orari.
 Nel pannello 360dialog → Templates → "Add template". Categoria **UTILITY**,
 lingua **Italian (it)**. I testi vanno incollati ESATTAMENTE così (le variabili
 numerate sono obbligatorie in questo formato). I nomi devono essere questi,
-perché il software li usa per l'invio.
+perché il software li usa per l'invio — sono **case-sensitive** e, una volta
+creato il template, **non si possono più cambiare**: un refuso costa la
+ricreazione del template.
+
+> **La categoria deve essere UTILITY, non MARKETING.** Non è una formalità:
+> Meta limita i messaggi marketing a circa 2 al giorno per utente **sommati fra
+> tutte le aziende**. Se il paziente ha già ricevuto due promozioni da altri,
+> il promemoria dello studio **non gli arriva** — e non si presenta. In più
+> marketing costa di più in Italia e non ha sconti sui volumi. Terzo motivo:
+> il consenso che il paziente firma parla di promemoria, non di promozioni;
+> dichiarare a Meta che sono messaggi marketing contraddice quella base.
 
 ### Template 1 — nome: `promemoria_48h`
 

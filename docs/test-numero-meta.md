@@ -73,13 +73,41 @@ provando in locale, esponi la porta con un tunnel (es. `cloudflared tunnel` o
 
 Nella dashboard dell'app Meta → **WhatsApp → Configuration → Webhook**:
 
-- [ ] **Callback URL**: l'URL webhook copiato da Confermo (senza il `?token=`,
-      quella parte è il verify token)
-- [ ] **Verify token**: il token dello studio (Confermo lo mostra accanto
-      all'URL)
+- [ ] **Callback URL**: incolla l'URL **completo, compresa la parte `?token=...`**
+      (verificato sul campo: Meta conserva la query string anche nelle POST, e
+      il nostro webhook autentica proprio con quel token)
+- [ ] **Verify token**: solo il valore dopo `token=`
 - [ ] Salva: Meta chiama l'URL in GET, Confermo risponde con il challenge e la
       verifica passa.
-- [ ] Alla voce **Webhook fields**, iscriviti a **messages**.
+- [ ] Alla voce **Webhook fields**, iscriviti a **messages**. Senza questa
+      spunta Meta verifica l'URL e poi non inoltra nulla: sembra un guasto del
+      software, invece è solo la sottoscrizione mancante.
+
+## 5-bis. Iscrivere l'app all'account WhatsApp — IL PASSAGGIO INVISIBILE
+
+**Salta questo e i messaggi in arrivo non arriveranno mai**, pur avendo tutte le
+pagine di configurazione in ordine e il pulsante "Test" funzionante.
+
+Il motivo: l'account WhatsApp deve essere iscritto **alla tua app**. Di
+serie è iscritto a un'app interna di Meta (`WA DevX Webhook Events 1P App`),
+quella che alimenta la schermata di prova della console — e i messaggi vanno
+lì, non a te. Questa iscrizione non compare in nessuna pagina di
+configurazione: si vede e si cambia solo via API.
+
+Su **developers.facebook.com/tools/explorer** (Strumenti → Graph API Explorer):
+
+- [ ] In alto a destra seleziona la **tua app**, e genera un token di accesso
+      con `whatsapp_business_management`. È il punto critico: la chiamata iscrive
+      *l'app del token che stai usando*, quindi con l'app sbagliata selezionata
+      iscriveresti quella sbagliata.
+- [ ] Metodo **GET** su `<WABA_ID>/subscribed_apps` per vedere lo stato attuale
+      (il WABA_ID è il "WhatsApp Business Account ID" accanto al Phone number ID)
+- [ ] Se la tua app non è nell'elenco: metodo **POST** sullo stesso indirizzo →
+      deve rispondere `{"success": true}`
+- [ ] Rifai il **GET**: ora devono comparire due app, la tua e quella di Meta.
+      Convivono senza problemi.
+
+Questo passaggio non serve con 360dialog: là è il BSP a gestire l'iscrizione.
 
 ## 6. Prova completa
 
@@ -95,3 +123,36 @@ Se qualcosa non torna — un codice di errore inatteso, una risposta che non
 arriva — annota il messaggio esatto: è proprio ciò che questo collaudo serve a
 far emergere, e si sistema nel codice del provider `meta` (o nella logica
 condivisa in `cloud-api.ts`) prima di toccare uno studio reale.
+
+---
+
+## Errori incontrati davvero, e come si riconoscono
+
+Raccolti durante il primo collaudo (30/07/2026), superato con successo.
+
+**`(#132001) Template name does not exist in the translation`**
+Nome o lingua del template non combaciano con quello che il codice invia.
+Nel nostro caso era un refuso nel nome (`promemroia_48h`). Da sapere: i nomi
+sono **case-sensitive** e **immutabili** — non si rinominano, va creato un
+template nuovo ed eliminato quello sbagliato. Altre cause dello stesso errore:
+lingua diversa da `it`, oppure template creato su un account WhatsApp diverso
+da quello del numero che sta inviando.
+
+**Il messaggio parte, ma premendo il pulsante non accade nulla**
+Quasi sempre è l'iscrizione dell'app all'account WhatsApp (passo 5-bis).
+Come distinguere in un colpo: scrivi un messaggio libero dal telefono al numero
+di test e guarda il riquadro "Messaggi da gestire" in dashboard.
+- non compare nulla → l'iscrizione manca, oppure il webhook non riceve
+- compare **col nome del paziente** → tutto in ordine sul riconoscimento
+- compare **solo col numero mascherato** → il numero del paziente in archivio
+  non corrisponde a quello da cui scrive
+
+**Credenziali non valide dopo un giorno**
+L'access token di test di Meta scade in **24 ore**. Si rigenera dalla pagina
+"Passaggio 1. Prova" e si reincolla in Impostazioni.
+
+**Nessun errore nei log ma niente arriva**
+Cerca nei log una riga qualsiasi con `webhook`, non solo gli errori: la
+differenza fra "nessuna richiesta" (Meta non ci ha chiamato → iscrizione) e
+"richiesta con esito 200" (ci ha chiamato ma il payload non è stato
+interpretato → problema di codice) indirizza tutta la diagnosi.
