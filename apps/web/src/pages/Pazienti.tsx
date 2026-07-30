@@ -138,6 +138,7 @@ function PatientModal({
   const [lastName, setLastName] = useState(patient?.lastName ?? '');
   const [phone, setPhone] = useState(patient?.phone ?? '');
   const [privacyConsent, setPrivacyConsent] = useState(patient ? patient.privacyConsentAt !== null : false);
+  const [optedOut, setOptedOut] = useState(patient?.optedOutAt !== null && patient?.optedOutAt !== undefined);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -147,7 +148,7 @@ function PatientModal({
     setError(null);
     const body = { firstName, lastName, phone, privacyConsent };
     try {
-      if (patient) await patch(`/patients/${patient.id}`, body);
+      if (patient) await patch(`/patients/${patient.id}`, { ...body, optedOut });
       else await post('/patients', body);
       onSaved();
     } catch (err) {
@@ -187,6 +188,27 @@ function PatientModal({
           />
           Il paziente ha firmato il consenso privacy per ricevere promemoria
         </label>
+
+        {patient && (
+          <div className={optedOut ? 'optout-box active' : 'optout-box'}>
+            <label className="checkbox">
+              <input type="checkbox" checked={optedOut} onChange={(e) => setOptedOut(e.target.checked)} />
+              <strong>Il paziente non vuole ricevere messaggi</strong>
+            </label>
+            {patient.optedOutAt !== null && (
+              <p className="muted small-note">
+                Ha risposto STOP il {new Date(patient.optedOutAt).toLocaleDateString('it-IT')}. Togli la
+                spunta solo se ha chiesto espressamente di ricevere di nuovo i promemoria: serve anche il
+                consenso privacy qui sopra.
+              </p>
+            )}
+            {patient.optedOutAt === null && (
+              <p className="muted small-note">
+                Spunta questa casella se il paziente ha chiesto a voce di non ricevere più promemoria.
+              </p>
+            )}
+          </div>
+        )}
         <p className="muted small-note">
           Senza consenso il paziente resta in archivio ma non riceve nessun messaggio.
         </p>

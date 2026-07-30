@@ -17,6 +17,7 @@ export type EventType =
   | 'csv_imported'
   | 'inbound_text_received'
   | 'patient_opted_out'
+  | 'patient_opt_in_restored'
   | 'thankyou_sent'
   | 'thankyou_skipped'
   | 'thankyou_failed'

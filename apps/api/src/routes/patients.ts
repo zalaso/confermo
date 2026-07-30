@@ -80,7 +80,12 @@ export default async function patientRoutes(fastify: FastifyInstance) {
     {
       schema: {
         params: Type.Object({ id: Type.String({ format: 'uuid' }) }),
-        body: Type.Partial(patientBody),
+        body: Type.Composite([
+          Type.Partial(patientBody),
+          // true = la segreteria registra una richiesta di non essere contattato;
+          // false = il paziente ha dato di nuovo il consenso (serve privacyConsent)
+          Type.Object({ optedOut: Type.Optional(Type.Boolean()) }),
+        ]),
       },
     },
     async (req, reply) => {
@@ -96,18 +101,43 @@ export default async function patientRoutes(fastify: FastifyInstance) {
         phone = normalized;
       }
 
+      // Riattivare chi ha chiesto di non essere più contattato richiede un
+      // consenso nuovo: senza, il sistema non deve tornare a scrivergli.
+      let optedOutAt = current.optedOutAt;
+      if (req.body.optedOut !== undefined) {
+        const consentAfterUpdate =
+          req.body.privacyConsent !== undefined ? req.body.privacyConsent : current.privacyConsentAt !== null;
+        if (req.body.optedOut === false && !consentAfterUpdate) {
+          return reply.code(422).send({
+            error: 'Per riattivare i messaggi serve il consenso privacy del paziente',
+          });
+        }
+        optedOutAt = req.body.optedOut ? (current.optedOutAt ?? new Date()) : null;
+      }
+
       const patient = await prisma.patient.update({
         where: { id: current.id },
         data: {
           firstName: req.body.firstName?.trim(),
           lastName: req.body.lastName?.trim(),
           phone,
+          optedOutAt,
           ...(req.body.privacyConsent !== undefined
             ? { privacyConsentAt: req.body.privacyConsent ? (current.privacyConsentAt ?? new Date()) : null }
             : {}),
         },
       });
       await logEvent(prisma, { clinicId: req.user.clinicId, type: 'patient_updated', patientId: patient.id });
+
+      // tracciato a parte: è una decisione del paziente, va a registro
+      if (req.body.optedOut !== undefined && (current.optedOutAt !== null) !== req.body.optedOut) {
+        await logEvent(prisma, {
+          clinicId: req.user.clinicId,
+          type: req.body.optedOut ? 'patient_opted_out' : 'patient_opt_in_restored',
+          patientId: patient.id,
+          payload: { source: 'staff' },
+        });
+      }
       return toPatientDto(patient);
     },
   );
