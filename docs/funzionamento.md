@@ -304,17 +304,30 @@ contro uno studio non blocca gli altri).
 - **Dashboard**: React + Vite, in italiano
 - **Un solo processo** serve API, dashboard e scheduler: nessuna infrastruttura
   complessa, gira su un piccolo server o su una piattaforma gestita
-- **137 test automatici** coprono le parti critiche: unicità degli invii
+- **157 test automatici** coprono le parti critiche: unicità degli invii
   (compresi scheduler concorrenti e webhook consegnati due volte), transizioni
   di stato, consenso e opt-out, cifratura delle credenziali, orari di silenzio,
-  promemoria in ritardo, resilienza alla caduta del database
+  promemoria in ritardo, resilienza alla caduta del database, e il ciclo
+  completo di backup e ripristino
 
 ### Monitoraggio
 
-`GET /api/health` verifica database e scheduler e risponde **503** se il
-database non risponde o se lo scheduler non completa un giro da più di cinque
-minuti. È l'indirizzo da tenere sotto controllo con un servizio di uptime
-esterno.
+`GET /api/health` risponde **503** in tre casi: database irraggiungibile,
+scheduler fermo da oltre cinque minuti, oppure **invii che falliscono in
+blocco** nelle ultime 24 ore. È l'indirizzo da tenere sotto controllo con un
+servizio di uptime esterno.
+
+Il terzo caso è il guasto silenzioso, e merita attenzione: se le credenziali di
+uno studio scadono, lo scheduler continua a girare regolarmente e ogni altro
+controllo resta verde, mentre nessun messaggio arriva più. La soglia richiede
+almeno tre fallimenti che siano almeno la metà dei tentativi, e ignora i numeri
+non su WhatsApp — quelli sono dati sbagliati in anagrafica, non un canale rotto.
+
+**Backup.** Il comando `npm run backup` esporta i dati di uno studio in un file
+JSON, indipendente dai backup della piattaforma di hosting. Il ciclo esporta →
+cancella → ripristina è verificato da test automatici. Le credenziali WhatsApp
+non vengono esportate: sono cifrate con una chiave legata all'installazione.
+Procedura in [riferimenti/operativita.md](riferimenti/operativita.md).
 
 **Cosa succede se il servizio si ferma.** Lo stato dei promemoria vive sul
 database, non in memoria: alla ripartenza lo scheduler riprende da dove era,

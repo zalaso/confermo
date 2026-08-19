@@ -56,19 +56,29 @@ le tipologie di appuntamento proposte, non il funzionamento.
 ## Comandi utili
 
 ```bash
-npm test                    # 137 test (avvia un PostgreSQL dedicato su porta 5434)
+npm test                    # 157 test (avvia un PostgreSQL dedicato su porta 5434)
 npm run typecheck           # controllo dei tipi su api e web
 npm run build:web           # build di produzione della dashboard
 
 npm run set-password -w apps/api -- --list                     # utenti registrati
 npm run set-password -w apps/api -- --email studio@esempio.it  # nuova password
+
+npm run backup -w apps/api -- --list                                  # studi presenti
+npm run backup -w apps/api -- --export --clinic "Studio X" --out b.json
+npm run backup -w apps/api -- --import --in b.json                    # ripristino
 ```
 
-## Monitoraggio
+## Monitoraggio e backup
 
-`GET /api/health` verifica database e scheduler; risponde **503** se il
-database non risponde o se lo scheduler non completa un giro da più di cinque
-minuti. È l'indirizzo da puntare con un servizio di uptime esterno.
+`GET /api/health` risponde **503** in tre casi: database irraggiungibile,
+scheduler fermo da oltre cinque minuti, oppure **invii che falliscono in
+blocco** — quest'ultimo è il guasto silenzioso, quello in cui lo scheduler gira
+ma il canale WhatsApp è rotto e nessun paziente riceve più niente.
+
+Il comando `backup` produce una copia indipendente dalla piattaforma di
+hosting; il ciclo esporta → cancella → ripristina è coperto da test.
+
+Procedura completa in [docs/riferimenti/operativita.md](docs/riferimenti/operativita.md).
 
 ## Privacy — la regola che vale sempre
 

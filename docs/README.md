@@ -23,7 +23,8 @@
 
 | File | Contenuto |
 | --- | --- |
-| [deploy.md](riferimenti/deploy.md) | Deploy su Railway o su server proprio, variabili d'ambiente, backup |
+| [deploy.md](riferimenti/deploy.md) | Deploy su Railway o su server proprio, variabili d'ambiente |
+| [operativita.md](riferimenti/operativita.md) | Monitoraggio e backup: cosa configurare prima dei dati veri |
 | [whatsapp-360dialog.md](riferimenti/whatsapp-360dialog.md) | Attivare un canale con 360dialog: procedura completa e testi dei modelli |
 | [whatsapp-collaudo-meta.md](riferimenti/whatsapp-collaudo-meta.md) | Collaudare sul numero di test gratuito di Meta, e le trappole incontrate |
 | [checklist-attivazione.md](riferimenti/checklist-attivazione.md) | Foglio di campo da avere in mano durante la visita allo studio |
