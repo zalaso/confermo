@@ -122,6 +122,27 @@ export default async function whatsappRoutes(fastify: FastifyInstance) {
   );
 
   /**
+   * Rigenera il token del webhook.
+   *
+   * Serve quando il vecchio è stato esposto (finito in una chat, in una mail,
+   * in uno screenshot). Da quel momento l'URL precedente smette di funzionare:
+   * finché il nuovo non viene incollato nel pannello del provider, le risposte
+   * dei pazienti non arrivano più — per questo l'interfaccia lo dice a chiare
+   * lettere prima di procedere.
+   */
+  app.post('/webhook-token/rotate', async (req) => {
+    const updated = await prisma.clinic.update({
+      where: { id: req.user.clinicId },
+      data: { whatsappWebhookSecret: randomBytes(24).toString('hex') },
+    });
+    await logEvent(prisma, {
+      clinicId: req.user.clinicId,
+      type: 'whatsapp_webhook_token_rotated',
+    });
+    return toSettingsDto(updated);
+  });
+
+  /**
    * Invia il template 48h a un numero indicato, con dati di esempio.
    * In modalità demo passa dal MockProvider (visibile nell'outbox).
    */

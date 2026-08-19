@@ -40,6 +40,7 @@ export function Agenda({ clinic }: { clinic: ClinicDto }) {
   const [filter, setFilter] = useState<Filter>('settimana');
   const [showNew, setShowNew] = useState(false);
   const [showCsv, setShowCsv] = useState(false);
+  const [editing, setEditing] = useState<AppointmentDto | null>(null);
   const [phoneFor, setPhoneFor] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -159,6 +160,11 @@ export function Agenda({ clinic }: { clinic: ClinicDto }) {
                           📱 Messaggio
                         </button>
                       )}
+                      {active && (
+                        <button className="btn small" disabled={busy} onClick={() => setEditing(a)}>
+                          ✏️ Sposta
+                        </button>
+                      )}
                       {active && !isPast && (
                         <button
                           className="btn small danger-outline"
@@ -210,6 +216,18 @@ export function Agenda({ clinic }: { clinic: ClinicDto }) {
         />
       )}
 
+      {editing && (
+        <EditAppointmentModal
+          clinic={clinic}
+          appointment={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            void refetch();
+          }}
+        />
+      )}
+
       {showNew && (
         <NewAppointmentModal
           clinic={clinic}
@@ -254,6 +272,116 @@ function InboundAttentionBanner() {
         </div>
       ))}
     </div>
+  );
+}
+
+/**
+ * Spostare un appuntamento invece di disdirlo e ricrearlo.
+ *
+ * Non è solo comodità: il ciclo disdici+ricrea lascia in agenda un
+ * appuntamento "disdetto" che finisce nelle statistiche, gonfiando il numero
+ * delle disdette e falsando il tasso di no-show.
+ */
+function EditAppointmentModal({
+  clinic,
+  appointment,
+  onClose,
+  onSaved,
+}: {
+  clinic: ClinicDto;
+  appointment: AppointmentDto;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  // localDate arriva come "21/07/2026" nel fuso dello studio: l'input HTML
+  // vuole "2026-07-21". Partire da qui evita conversioni di fuso lato client.
+  const [gg, mm, aaaa] = appointment.localDate.split('/');
+  const [date, setDate] = useState(`${aaaa}-${mm}-${gg}`);
+  const [time, setTime] = useState(appointment.localTime);
+  const [durationMin, setDurationMin] = useState(appointment.durationMin);
+  const [visitType, setVisitType] = useState(appointment.visitType);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const giaAvvisato = appointment.reminders.some((r) => r.status === 'sent');
+  const cambiaOrario = date !== `${aaaa}-${mm}-${gg}` || time !== appointment.localTime;
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await patch(`/appointments/${appointment.id}`, { date, time, durationMin, visitType });
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore imprevisto');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal title="Sposta appuntamento" onClose={onClose}>
+      <p className="muted">
+        {appointment.patient.firstName} {appointment.patient.lastName} · attualmente{' '}
+        {appointment.localDate} alle {appointment.localTime}
+      </p>
+      <form className="form" onSubmit={submit}>
+        <div className="form-row">
+          <label>
+            Nuovo giorno
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          </label>
+          <label>
+            Nuova ora
+            <input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+          </label>
+        </div>
+        <div className="form-row">
+          <label>
+            Durata
+            <select value={durationMin} onChange={(e) => setDurationMin(Number(e.target.value))}>
+              {[15, 30, 45, 60, 90, 120].map((m) => (
+                <option key={m} value={m}>
+                  {m} minuti
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Tipo di appuntamento
+            <input
+              value={visitType}
+              onChange={(e) => setVisitType(e.target.value)}
+              list="tipi-appuntamento"
+              maxLength={VISIT_TYPE_MAX_LENGTH}
+              required
+            />
+            <datalist id="tipi-appuntamento">
+              {clinic.appointmentTypes.map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+          </label>
+        </div>
+
+        {giaAvvisato && cambiaOrario && (
+          <p className="privacy-note">
+            ⚠️ Il paziente ha già ricevuto un promemoria con la data precedente. Il sistema ricalcola
+            quelli non ancora partiti, ma conviene avvisarlo del cambio.
+          </p>
+        )}
+
+        <p className="muted small-note">
+          I promemoria vengono ricalcolati sul nuovo orario. Quelli già inviati restano nello storico.
+        </p>
+
+        {error && <p className="error-text">{error}</p>}
+        <button className="btn primary big" disabled={busy}>
+          {busy ? 'Salvataggio…' : 'Salva'}
+        </button>
+      </form>
+    </Modal>
   );
 }
 

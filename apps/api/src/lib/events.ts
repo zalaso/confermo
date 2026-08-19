@@ -23,6 +23,7 @@ export type EventType =
   | 'thankyou_failed'
   | 'whatsapp_settings_updated'
   | 'whatsapp_test_sent'
+  | 'whatsapp_webhook_token_rotated'
   | 'clinic_settings_updated'
   | 'password_changed';
 

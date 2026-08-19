@@ -1047,6 +1047,23 @@ code {
   margin: 0;
 }
 
+.rotate-link {
+  margin-top: 8px;
+  padding-left: 0;
+}
+
+.rotate-box {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  background: var(--danger-bg);
+}
+
+.rotate-box p {
+  margin: 0 0 8px;
+}
+
 .optout-box {
   border: 1px solid var(--border);
   border-radius: 10px;

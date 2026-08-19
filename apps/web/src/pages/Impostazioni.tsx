@@ -130,6 +130,7 @@ function WhatsappSection() {
   const [testPhone, setTestPhone] = useState('');
   const [testResult, setTestResult] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [rotating, setRotating] = useState(false);
 
   const load = async () => {
     const s = await get<WhatsappSettingsDto>('/whatsapp/settings');
@@ -174,6 +175,21 @@ function WhatsappSection() {
       setSettings(s);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore imprevisto');
+    }
+  };
+
+  const rotateToken = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const s = await post<WhatsappSettingsDto>('/whatsapp/webhook-token/rotate');
+      setSettings(s);
+      setRotating(false);
+      setCopied(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore imprevisto');
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -296,6 +312,31 @@ function WhatsappSection() {
               {copied ? '✓ Copiato' : 'Copia'}
             </button>
           </div>
+
+          {!rotating ? (
+            <button type="button" className="btn small ghost rotate-link" onClick={() => setRotating(true)}>
+              🔄 Rigenera il token
+            </button>
+          ) : (
+            <div className="rotate-box">
+              <p className="error-text">
+                Rigenerando il token, l'indirizzo qui sopra smette di funzionare.
+              </p>
+              <p className="muted small-note">
+                Finché non incolli il nuovo indirizzo nel pannello del provider, le risposte dei
+                pazienti non arrivano più. Fallo solo se il token è stato esposto, e tieni aperto il
+                pannello per aggiornarlo subito.
+              </p>
+              <div className="form-row">
+                <button type="button" className="btn" onClick={() => setRotating(false)}>
+                  Annulla
+                </button>
+                <button type="button" className="btn danger" onClick={rotateToken} disabled={busy}>
+                  {busy ? 'Rigenerazione…' : 'Rigenera adesso'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

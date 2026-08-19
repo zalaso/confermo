@@ -84,6 +84,35 @@ describe('accesso e sessione', () => {
     }
   });
 
+  it('anche le altre rotte rispondono 401 se lo studio non esiste più', async () => {
+    // caso reale: un `seed` ricrea lo studio mentre la dashboard sta facendo
+    // polling. Senza questa gestione l'utente vedrebbe una schermata rotta
+    // invece di tornare alla pagina di accesso.
+    const { clinic } = await seedUser();
+    const app = await buildApp();
+    try {
+      const login = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: 'studio@test.it', password: PASSWORD },
+      });
+      const cookie = login.cookies.find((c) => c.name === 'confermo_session')!.value;
+
+      await prisma.clinic.delete({ where: { id: clinic.id } });
+
+      for (const url of ['/api/appointments', '/api/clinic', '/api/whatsapp/settings']) {
+        const res = await app.inject({
+          method: 'GET',
+          url,
+          cookies: { confermo_session: cookie },
+        });
+        expect(res.statusCode, `${url} dovrebbe rispondere 401`).toBe(401);
+      }
+    } finally {
+      await app.close();
+    }
+  });
+
   it('senza cookie /me risponde 401', async () => {
     const app = await buildApp();
     try {

@@ -4,7 +4,7 @@ import fastifyStatic from '@fastify/static';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import authPlugin from './plugins/auth.js';
+import authPlugin, { COOKIE_NAME } from './plugins/auth.js';
 import rateLimitPlugin from './plugins/rateLimit.js';
 import authRoutes from './routes/auth.js';
 import patientRoutes from './routes/patients.js';
@@ -42,6 +42,31 @@ export async function buildServer() {
       err.statusCode = 400;
       done(err);
     }
+  });
+
+  /**
+   * Una sessione può puntare a uno studio che non esiste più (eliminato,
+   * oppure ricreato da un `seed`). Le rotte lo cercano con findUniqueOrThrow,
+   * che solleverebbe un errore 500: per l'utente è una schermata rotta, mentre
+   * la verità è solo che la sessione è scaduta. Qui il caso viene tradotto una
+   * volta sola per tutte le rotte.
+   */
+  app.setErrorHandler((err, req, reply) => {
+    const prismaErr = err as { code?: string; meta?: { modelName?: string } };
+    if (prismaErr.code === 'P2025' && prismaErr.meta?.modelName === 'Clinic') {
+      req.log.info('sessione verso uno studio non più esistente');
+      return reply
+        .clearCookie(COOKIE_NAME, { path: '/' })
+        .code(401)
+        .send({ error: 'Sessione scaduta' });
+    }
+    // Il codice di stato va riportato esplicitamente: senza, un errore che ne
+    // porta uno proprio (la validazione con 400, il rate limiting con 429)
+    // uscirebbe con 200 e il corpo dell'errore — cioè un rifiuto che sembra
+    // un successo.
+    const statusCode = (err as { statusCode?: number }).statusCode ?? 500;
+    if (statusCode >= 500) req.log.error({ err }, 'errore non gestito');
+    return reply.code(statusCode).send(err);
   });
 
   await app.register(fastifyCors, {
