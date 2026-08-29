@@ -21,6 +21,7 @@ a chi non ha risposto.
 - [Come funziona](#come-funziona)
 - [Funzionalità](#funzionalità)
 - [Provarlo in cinque minuti](#provarlo-in-cinque-minuti)
+- [Stack tecnologico](#stack-tecnologico)
 - [Architettura](#architettura)
 - [Privacy e GDPR](#privacy-e-gdpr)
 - [Cosa deve fare un cliente per usarlo](#cosa-deve-fare-un-cliente-per-usarlo)
@@ -142,17 +143,103 @@ npm run set-password -w apps/api -- --email studio@esempio.it
 
 ---
 
+## Stack tecnologico
+
+Tutto **TypeScript**, dal database all'interfaccia, con i tipi condivisi fra
+backend e frontend in un pacchetto comune: gli stati di un appuntamento e le
+transizioni ammesse sono definiti una volta sola e usati da entrambi.
+
+### Backend — `apps/api`
+
+| Tecnologia | Versione | Ruolo |
+| --- | --- | --- |
+| **Node.js** | ≥ 22 | Ambiente di esecuzione |
+| **TypeScript** | 5.8 | Linguaggio, in modalità `strict` |
+| **Fastify** | 5.4 | Server HTTP |
+| **Prisma** | 6.12 | ORM e migrazioni del database |
+| **PostgreSQL** | 17 | Database |
+| **TypeBox** | 0.34 | Validazione degli input, con tipi derivati dagli schemi |
+| **Luxon** | 3.6 | Fusi orari e ora legale (`Europe/Rome`) |
+| **bcryptjs** | 3.0 | Hash delle password |
+| **csv-parse** | 5.6 | Import degli appuntamenti da file |
+| **tsx** | 4.20 | Esecuzione diretta di TypeScript, senza passo di compilazione |
+
+Plugin Fastify: `@fastify/jwt` e `@fastify/cookie` per le sessioni,
+`@fastify/rate-limit` contro i tentativi a raffica sul login,
+`@fastify/cors`, `@fastify/static` per servire la dashboard compilata.
+
+### Frontend — `apps/web`
+
+| Tecnologia | Versione | Ruolo |
+| --- | --- | --- |
+| **React** | 19.1 | Interfaccia |
+| **Vite** | 7.0 | Build e sviluppo con ricarica immediata |
+| **CSS puro** | — | Nessun framework di stile |
+
+Niente libreria di componenti e nessun gestore di stato esterno: l'interfaccia
+ha quattro pagine e uno stato semplice, e le dipendenze in meno sono
+manutenzione in meno. Il caricamento dei dati usa un polling leggero (15
+secondi) invece di WebSocket — per un'agenda di studio è più che sufficiente e
+non introduce una connessione persistente da gestire.
+
+### Test e strumenti
+
+| Tecnologia | Ruolo |
+| --- | --- |
+| **Vitest** 3.2 | Framework di test |
+| **embedded-postgres** | PostgreSQL scaricato come dipendenza: i test di integrazione girano su un database vero, senza Docker né installazioni |
+| **npm workspaces** | Monorepo, senza strumenti aggiuntivi |
+| **Railway** | Hosting in regione UE |
+
+La scelta di `embedded-postgres` merita una nota: i test di integrazione
+avviano un PostgreSQL reale sulla porta 5434, applicano le migrazioni e girano
+contro quello. Nessun mock del database — le cose che contano in questo sistema
+(blocchi transazionali, vincoli di unicità, comportamento dei fusi orari) sono
+esattamente quelle che un mock non riprodurrebbe.
+
+### Dimensioni
+
+| Area | Righe | File |
+| --- | --- | --- |
+| Backend | 3.900 | 38 |
+| Dashboard | 2.000 | 13 |
+| Tipi condivisi | 225 | 1 |
+| **Test** | **2.700** | **23** |
+| Script operativi | 280 | 4 |
+
+Il rapporto fra codice di produzione e test è circa 2:1, concentrato dove un
+errore costa: invii duplicati, transizioni di stato, consenso, cifratura.
+
+---
+
 ## Architettura
 
 ```
-apps/api          Backend Fastify + TypeScript + Prisma (PostgreSQL)
-apps/web          Dashboard React + Vite, in italiano
+apps/api          Backend, API REST + scheduler
+apps/web          Dashboard React, in italiano
 packages/shared   Tipi e regole condivise (stati, transizioni, modelli)
 docs/             Documentazione
 ```
 
 **Un solo processo** serve API, dashboard e scheduler: nessuna coda esterna,
-nessun Redis. Gira su un piccolo server o su una piattaforma gestita.
+nessun Redis, nessun servizio di background separato. Gira su un piccolo server
+o su una piattaforma gestita, e in produzione l'API serve anche la dashboard
+compilata — un solo dominio, nessun CORS da configurare.
+
+### Il modello dati
+
+Sei tabelle, tutte collegate a `clinic` (lo studio):
+
+```
+clinic ──┬── user              accesso allo studio
+         ├── patient           anagrafica, consenso, opt-out
+         ├── appointment ──── reminder      promemoria programmati
+         ├── message_template testi dei messaggi
+         ├── inbound_message  messaggi ricevuti (con deduplicazione)
+         └── event_log        registro, senza dati personali nel contenuto
+```
+
+Cinque migrazioni Prisma, tutte additive.
 
 ### Le tre scelte che contano
 
