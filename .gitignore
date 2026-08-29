@@ -1,7 +1,22 @@
+# dipendenze e build
 node_modules/
 dist/
+
+# segreti e configurazione locale — non devono MAI finire nel repository
 .env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# database locale e di test
 .pgdata/
 .pgdata-test/
+
+# backup: contengono dati personali di pazienti
+backup*.json
+*.backup.json
+
+# varie
 *.log
 .DS_Store
+Thumbs.db
