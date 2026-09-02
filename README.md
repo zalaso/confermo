@@ -1,4 +1,6 @@
 # Confermo
+*[🇬🇧 Read in English](README.en.md)*
+
 
 **Promemoria automatici su WhatsApp per studi medici e dentistici.** Il paziente
 riceve il promemoria dell'appuntamento e risponde con un tocco — «Confermo» o
