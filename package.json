@@ -16,7 +16,11 @@
     "dev:api": "npm run dev -w apps/api",
     "dev:web": "npm run dev -w apps/web",
     "build:web": "npm run build -w apps/web",
+    "screenshots": "npm run build:web && tsx apps/api/scripts/screenshots.mts",
     "test": "npm run test -w apps/api",
     "typecheck": "npm run typecheck -w apps/api && npm run typecheck -w apps/web"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
   }
 }

@@ -23,6 +23,30 @@ end-to-end, 157 test automatici. Manca il primo studio pilota — vedi
 
 ---
 
+## Screenshots
+
+**L'agenda della segreteria.** Ogni appuntamento con il suo stato a colori e le
+azioni disponibili; in alto i messaggi dei pazienti che richiedono una persona.
+
+![Agenda](docs/img/01-agenda.png)
+
+**Il telefono del paziente, simulato.** Durante una presentazione mostra il
+messaggio come arriverebbe davvero, con i pulsanti cliccabili: premere «Confermo»
+qui fa diventare verde la card nell'agenda dietro.
+
+![Telefono simulato](docs/img/02-telefono-simulato.png)
+
+**Le statistiche.** Tasso di conferma, no-show e tempo medio di risposta: i
+numeri con cui misurare il servizio, calcolati dal sistema.
+
+![Statistiche](docs/img/03-statistiche.png)
+
+> Le immagini si rigenerano con `npm run screenshots`: lo script avvia
+> l'applicazione con dati dimostrativi e le cattura con Playwright, così non
+> invecchiano rispetto all'interfaccia.
+
+---
+
 ## Indice
 
 - [Come funziona](#come-funziona)

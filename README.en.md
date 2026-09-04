@@ -20,6 +20,30 @@ end-to-end, 157 automated tests. Waiting on the first pilot practice — see
 > redistribute it without written permission. The repository is open to show how it
 > is built, not to be taken — see [LICENSE](LICENSE).
 
+---
+
+## Screenshots
+
+**The front-desk schedule.** Every appointment with its colour-coded state and
+available actions; at the top, patient messages that need a human.
+
+![Schedule](docs/img/01-agenda.png)
+
+**The patient's phone, simulated.** During a demo it shows the message exactly as
+it would arrive, with working buttons: tapping «Confermo» here turns the card in
+the schedule behind it green.
+
+![Simulated phone](docs/img/02-telefono-simulato.png)
+
+**Statistics.** Confirmation rate, no-show rate and average response time — the
+numbers that measure the service, computed by the system itself.
+
+![Statistics](docs/img/03-statistiche.png)
+
+> The images are regenerated with `npm run screenshots`: the script boots the app
+> with demo data and captures them with Playwright, so they cannot drift from the
+> actual interface.
+
 > **Language note:** the product interface and the detailed documentation are in
 > **Italian**, since the target users are Italian practices. This README is the
 > English entry point to the project.

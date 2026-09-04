@@ -11,6 +11,7 @@ dist/
 # database locale e di test
 .pgdata/
 .pgdata-test/
+.pgdata-screenshots/
 
 # backup: contengono dati personali di pazienti
 backup*.json
