@@ -1,4 +1,9 @@
 # Confermo
+
+[![CI](https://github.com/zalaso/Confermo/actions/workflows/ci.yml/badge.svg)](https://github.com/zalaso/Confermo/actions/workflows/ci.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Licenza](https://img.shields.io/badge/licenza-tutti%20i%20diritti%20riservati-lightgrey)](LICENSE)
+
 *[🇬🇧 Read in English](README.en.md)*
 
 

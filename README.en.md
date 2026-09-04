@@ -1,5 +1,9 @@
 # Confermo
 
+[![CI](https://github.com/zalaso/Confermo/actions/workflows/ci.yml/badge.svg)](https://github.com/zalaso/Confermo/actions/workflows/ci.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/license-all%20rights%20reserved-lightgrey)](LICENSE)
+
 *[🇮🇹 Leggi in italiano](README.md)*
 
 **Automated WhatsApp appointment reminders for medical and dental practices.**
