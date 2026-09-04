@@ -346,7 +346,9 @@ because those are traps that cost an afternoon the first time you hit them.
 
 ## What's missing and how I'd build it
 
-In order of weight, with the approach I'd take.
+In order of weight, with the approach I would take. Each item also exists as a
+**ready-to-open issue** in [docs/issues/](docs/issues/) (Italian), with acceptance
+criteria, files involved and known pitfalls.
 
 ### 1. Integration with practice-management software
 

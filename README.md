@@ -364,7 +364,9 @@ perché sono trappole che costano un pomeriggio a chi le incontra la prima volta
 
 ## Cosa manca e come andrebbe fatto
 
-Elencato in ordine di quanto pesa, con l'approccio suggerito.
+Elencato in ordine di quanto pesa, con l'approccio suggerito. Ogni voce esiste
+anche come **issue pronta da aprire** in [docs/issues/](docs/issues/), con
+criteri di accettazione, file coinvolti e insidie note.
 
 ### 1. Integrazione con i gestionali di studio
 
