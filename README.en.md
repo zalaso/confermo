@@ -6,19 +6,14 @@
 
 *[🇮🇹 Leggi in italiano](README.md)*
 
-**Automated WhatsApp appointment reminders for medical and dental practices.**
-The patient gets a reminder and replies with a single tap — «Confermo» (confirm)
-or «Devo disdire» (cancel) — while the practice's schedule updates itself.
-
-It solves a measurable problem: a missed appointment is time you never get back,
-and phoning every patient costs the front desk an hour a day. Confermo automates
-the reminder and, more importantly, **asks for an answer**: patients who cancel
-early free the slot in time to reassign it, and the receptionist only calls the
-few who didn't reply.
-
-> **Status:** working and deployed, with the real WhatsApp channel validated
-> end-to-end. Awaiting the first pilot practice. See
-> [What's missing](#whats-missing-and-how-id-build-it).
+**The problem.** A missed appointment is time you never get back, and phoning
+every patient to remind them costs the front desk an hour a day.
+**The solution.** Two automated WhatsApp reminders, 48 and 3 hours ahead, that the
+patient answers with one tap: whoever cancels frees the slot in time to reassign
+it, and the receptionist only calls the few who didn't reply.
+**Status.** Deployed on European servers, real WhatsApp channel validated
+end-to-end, 157 automated tests. Waiting on the first pilot practice — see
+[what's missing](#whats-missing-and-how-id-build-it).
 
 > **Language note:** the product interface and the detailed documentation are in
 > **Italian**, since the target users are Italian practices. This README is the

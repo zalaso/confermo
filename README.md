@@ -7,19 +7,14 @@
 *[🇬🇧 Read in English](README.en.md)*
 
 
-**Promemoria automatici su WhatsApp per studi medici e dentistici.** Il paziente
-riceve il promemoria dell'appuntamento e risponde con un tocco — «Confermo» o
-«Devo disdire» — mentre l'agenda dello studio si aggiorna da sola.
-
-Risolve un problema misurabile: l'appuntamento mancato è tempo che non si
-recupera, e il promemoria telefonico costa alla segretaria un'ora al giorno.
-Confermo lo automatizza e, soprattutto, **chiede una risposta**: chi disdice in
-anticipo libera lo slot in tempo per riassegnarlo, e la segretaria telefona solo
-a chi non ha risposto.
-
-> **Stato:** funzionante e in produzione, canale WhatsApp reale collaudato
-> end-to-end. In attesa del primo studio pilota. Vedi
-> [Cosa manca](#cosa-manca-e-come-andrebbe-fatto).
+**Il problema.** Un appuntamento mancato è tempo che non si recupera, e
+ricordarlo per telefono costa alla segreteria un'ora al giorno.
+**La soluzione.** Due promemoria automatici su WhatsApp, 48 e 3 ore prima, a cui
+il paziente risponde con un tocco: chi disdice libera lo slot in tempo per
+riassegnarlo, e la segreteria telefona solo a chi non ha risposto.
+**Lo stato.** In produzione su server europei, canale WhatsApp reale collaudato
+end-to-end, 157 test automatici. Manca il primo studio pilota — vedi
+[cosa manca](#cosa-manca-e-come-andrebbe-fatto).
 
 ---
 
