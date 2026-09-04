@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Sola lettura: il workflow non scrive nulla nel repository.
+permissions:
+  contents: read
+
+# Un push che ne supera un altro sullo stesso ramo annulla il precedente:
+# la suite dura qualche minuto e non ha senso pagarla due volte.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifica:
+    name: Tipi e test
+    runs-on: ubuntu-latest
+    # La suite gira in ~2-3 minuti; il margine copre il download dei binari
+    # di PostgreSQL la prima volta che la cache è fredda.
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installazione dipendenze
+        run: npm ci
+
+      # I tipi del client Prisma sono generati: senza questo passo il
+      # controllo dei tipi fallisce su ogni riferimento al database.
+      - name: Generazione del client Prisma
+        run: npm run db:generate -w apps/api
+
+      - name: Controllo dei tipi
+        run: npm run typecheck
+
+      # I test di integrazione avviano un PostgreSQL reale sulla porta 5434,
+      # scaricato come dipendenza npm: nessun servizio esterno, nessun Docker.
+      # initdb rifiuta di girare come root — i runner GitHub eseguono come
+      # utente non privilegiato, quindi funziona.
+      - name: Test
+        run: npm test
