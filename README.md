@@ -16,6 +16,11 @@ riassegnarlo, e la segreteria telefona solo a chi non ha risposto.
 end-to-end, 157 test automatici. Manca il primo studio pilota — vedi
 [cosa manca](#cosa-manca-e-come-andrebbe-fatto).
 
+> ⚖️ **Il codice è pubblico ma non è open source.** È un prodotto commerciale in
+> sviluppo: puoi leggerlo, studiarlo e valutarlo liberamente, ma non riutilizzarlo,
+> copiarlo o distribuirlo senza autorizzazione scritta. Il repository è aperto per
+> mostrare come è fatto, non per essere ripreso — vedi [LICENSE](LICENSE).
+
 ---
 
 ## Indice

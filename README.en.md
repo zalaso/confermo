@@ -15,6 +15,11 @@ it, and the receptionist only calls the few who didn't reply.
 end-to-end, 157 automated tests. Waiting on the first pilot practice — see
 [what's missing](#whats-missing-and-how-id-build-it).
 
+> ⚖️ **Public, but not open source.** This is a commercial product in development:
+> you are welcome to read, study and evaluate the code, but not to reuse, copy or
+> redistribute it without written permission. The repository is open to show how it
+> is built, not to be taken — see [LICENSE](LICENSE).
+
 > **Language note:** the product interface and the detailed documentation are in
 > **Italian**, since the target users are Italian practices. This README is the
 > English entry point to the project.
